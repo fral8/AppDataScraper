@@ -17,25 +17,27 @@ def get_play_store_data(tag):
     url = f"https://play.google.com/store/search?q={tag}&c=apps"
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
-    results = soup.find_all("div", {"class": "Vpfmgd"})
+    results = soup.find_all("div", {"class": "VfPpkd-EScbFb-JIbuQc"})
     data = []
-    for result in results:
-        app_name = clean_str(result.find("div", {"class": "WsMG1c nnK0zc"}).text.strip())
+    for idx,result in enumerate(results):
+        print("Analyzing: "+str(idx)+"/"+str(len(results)))
+        app_name = clean_str(result.find("span", {"class": "DdYX5"}).text.strip())
         app_url = "https://play.google.com" + result.find("a")["href"]
         app_response = requests.get(app_url)
         app_soup = BeautifulSoup(app_response.content, "html.parser")
-        reviews = app_soup.find_all("div", {"class": "bAhLNe kx8XBd"})
+        reviews = app_soup.find_all("div", {"class": "h3YV2d"})
         best_review = ""
         worst_review = ""
         if len(reviews) > 0:
-            best_review = clean_str(reviews[0].find("span").text.strip())
-            worst_review = clean_str(reviews[-1].find("span").text.strip())
-        downloads = clean_num(result.find("div", {"class": "ZFr60d CeoRYc"}).text.strip())
-        last_update = clean_str(result.find("div", {"class": "bHi02c"}).text.strip())
-        num_apps = clean_num(result.find("div", {"class": "b8cIId ReQCgd Q9MA7b"}).text.strip())
-        price = clean_str(result.find("span", {"class": "VfPpfd ZdBevf i5DZme"}).text.strip())
-        features = clean_str(result.find("div", {"class": "KoLSrc"}).text.strip())
-        data.append([app_name, best_review, worst_review, downloads, last_update, num_apps, price, features])
+            best_review = clean_str(reviews[0].text.strip())
+            worst_review = clean_str(reviews[-1].text.strip())
+        downloads = clean_num(app_soup.find("div", {"class": "ClM7O"}).text.strip())
+        last_update = clean_str(app_soup.find("div", {"class": "xg1aie"}).text.strip())
+        #num_apps = clean_num(result.find("div", {"class": "b8cIId ReQCgd Q9MA7b"}).text.strip())
+        #price = clean_str(result.find("span", {"class": "VfPpfd ZdBevf i5DZme"}).text.strip())
+        features = clean_str(app_soup.find("div", {"class": "bARER"}).text.strip())
+        data.append([app_name, best_review, worst_review, downloads, last_update,   features])
+        print(data)
     return data
 
 def get_app_store_data(tag):
@@ -68,18 +70,18 @@ def main():
     tag = input("Enter a tag to search for apps: ")
     # Get data from the Play Store and App Store
     play_store_data = get_play_store_data(tag)
-    app_store_data = get_app_store_data(tag)
+    #app_store_data = get_app_store_data(tag)
 
     # Write data to a CSV file
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     filename = f"{tag}_{now}.csv"
     with open(filename, "w", newline="", encoding="utf-8") as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(["App Name", "Best Review", "Worst Review", "Downloads", "Last Update", "Number of Apps", "Price", "Features"])
+        writer = csv.writer(csvfile,delimiter="|")
+        writer.writerow(["App Name", "Best Review", "Worst Review", "Downloads", "Last Update",  "Features"])
         for row in play_store_data:
             writer.writerow(row)
-        for row in app_store_data:
-            writer.writerow(row)
+        # for row in app_store_data:
+        #     writer.writerow(row)
 
     print(f"App data written to {filename}")
 
